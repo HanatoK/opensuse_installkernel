@@ -73,9 +73,14 @@ fi
 # Install new files
 #
 
-cp -fp $BOOTIMAGE $INSTALL_PATH/$BOOTFILE-$KERNEL_VERSION
-cp -fp $MAPFILE $INSTALL_PATH/System.map-$KERNEL_VERSION
-[ -f .config ] && cp -fp .config $INSTALL_PATH/$CONFIGFILE
+cp -f --preserve=timestamps $BOOTIMAGE $INSTALL_PATH/$BOOTFILE-$KERNEL_VERSION
+cp -f --preserve=timestamps $MAPFILE $INSTALL_PATH/System.map-$KERNEL_VERSION
+[ -f .config ] && cp -f --preserve=timestamps .config $INSTALL_PATH/$CONFIGFILE
+if [ -x "$(command -v restorecon)" ]; then
+    restorecon -vF $INSTALL_PATH/$BOOTFILE-$KERNEL_VERSION
+    restorecon -vF $INSTALL_PATH/System.map-$KERNEL_VERSION
+    restorecon -vF $INSTALL_PATH/$CONFIGFILE
+fi
 
 
 # If the kernel has module support, recreate modules.dep using depmod
@@ -84,6 +89,10 @@ cp -fp $MAPFILE $INSTALL_PATH/System.map-$KERNEL_VERSION
 
 if [ -x /sbin/depmod -a -d /lib/modules/$KERNEL_VERSION ]; then
     /sbin/depmod $KERNEL_VERSION;
+fi
+
+if [ -x "$(command -v restorecon)" -a /lib/modules/$KERNEL_VERSION ]; then
+    restorecon -vFR /lib/modules/$KERNEL_VERSION;
 fi
 
 function check_supported()
@@ -114,7 +123,7 @@ check_supported $CONFIG
 
 KERNTYPES=$(dirname $MAPFILE)/init/kerntypes.o
 if [ -e $KERNTYPES ]; then
-    cp -fp $KERNTYPES $INSTALL_PATH/Kerntypes-$KERNEL_VERSION
+    cp -f --preserve=timestamps $KERNTYPES $INSTALL_PATH/Kerntypes-$KERNEL_VERSION
 fi
 
 #case "$(uname -m)" in
