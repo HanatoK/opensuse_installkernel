@@ -145,6 +145,9 @@ fi
 if [ -x /usr/bin/dracut -a -d /lib/modules/$KERNEL_VERSION ]; then
     /usr/bin/dracut --hostonly --force $CHECK_SUPPORTED \
        	$INSTALL_PATH/initrd-$KERNEL_VERSION $KERNEL_VERSION
+    if [ -x "$(command -v restorecon)" ]; then
+        restorecon -vF $INSTALL_PATH/initrd-$KERNEL_VERSION
+    fi
 else
     echo "You may need to create an initial ramdisk now."
 fi
